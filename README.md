@@ -18,7 +18,7 @@
 
 ## 下载
 
-从 [GitHub Releases](https://github.com/chillcharlie357/codex-ebook-reader/releases) 下载当前平台安装包。`v0.2.0` 提供 Apple Silicon macOS `.app.zip`；解压后可将应用拖入“应用程序”。该测试包使用临时签名，首次运行请在 Finder 中右键应用并选择“打开”。仓库内的 Release 工作流支持后续标签构建 macOS、Windows 和 Linux 产物。
+从 [GitHub Releases](https://github.com/chillcharlie357/codex-ebook-reader/releases) 下载当前平台安装包。`v0.2.1` 提供 Apple Silicon macOS `.app.zip`；解压后可将应用拖入“应用程序”。该测试包使用临时签名，首次运行请在 Finder 中右键应用并选择“打开”。仓库内的 Release 工作流支持后续标签构建 macOS、Windows 和 Linux 产物。
 
 ## Web 开发
 

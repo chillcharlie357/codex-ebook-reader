@@ -1,6 +1,6 @@
 [package]
 name = "codex-reader"
-version = "0.2.0"
+version = "0.2.1"
 description = "A private, dual-skin desktop ebook reader"
 authors = ["Codex Reader contributors"]
 edition = "2021"
