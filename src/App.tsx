@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import { ChangeEvent, DragEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { libraryDb } from './db'
+import { INTERFACE_MODE_STORAGE_KEY, parseInterfaceMode } from './interfaceMode'
 import { parseBook } from './parsers'
 import type { Book, ReaderSettings } from './types'
 
@@ -51,6 +52,7 @@ function App() {
   const [query, setQuery] = useState('')
   const [note, setNote] = useState('')
   const [settings, setSettings] = useState<ReaderSettings>(readSettings)
+  const [interfaceMode, setInterfaceMode] = useState(() => parseInterfaceMode(localStorage.getItem(INTERFACE_MODE_STORAGE_KEY)))
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [inspectorOpen, setInspectorOpen] = useState(() => window.innerWidth > 1080)
   const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth > 720)
@@ -96,6 +98,10 @@ function App() {
   useEffect(() => {
     localStorage.setItem('codex-reader-settings', JSON.stringify(settings))
   }, [settings])
+
+  useEffect(() => {
+    localStorage.setItem(INTERFACE_MODE_STORAGE_KEY, interfaceMode)
+  }, [interfaceMode])
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -203,7 +209,8 @@ function App() {
 
   return (
     <div
-      className={`app theme-${settings.theme} ${dragging ? 'is-dragging' : ''}`}
+      className={`app skin-${interfaceMode} theme-${settings.theme} ${dragging ? 'is-dragging' : ''}`}
+      data-interface-mode={interfaceMode}
       onDragEnter={(event) => { event.preventDefault(); setDragging(true) }}
       onDragOver={(event) => event.preventDefault()}
       onDragLeave={(event) => {
@@ -223,7 +230,7 @@ function App() {
       <div className="window-bar">
         <div className="traffic-lights" aria-hidden="true"><i /><i /><i /></div>
         <button className="icon-button mobile-only" aria-label="切换书库侧栏" onClick={() => setSidebarOpen((value) => !value)}><Menu size={17} /></button>
-        <span className="window-title">Codex Reader</span>
+        <span className="window-title">{interfaceMode === 'codex' ? 'Codex' : 'Codex Reader'}</span>
         <div className="window-actions">
           <button className="icon-button" aria-label="阅读设置" onClick={() => setSettingsOpen((value) => !value)}><Settings2 size={16} /></button>
           <button className="icon-button" aria-label="切换信息侧栏" onClick={() => setInspectorOpen((value) => !value)}><PanelRight size={16} /></button>
@@ -232,8 +239,17 @@ function App() {
 
       <aside className={`sidebar ${sidebarOpen ? 'is-open' : ''}`}>
         <div className="brand-row">
-          <div className="brand-mark"><BookOpen size={17} strokeWidth={1.8} /></div>
-          <strong>我的书库</strong>
+          <button
+            className="mode-button"
+            type="button"
+            aria-label={`切换到${interfaceMode === 'codex' ? '阅读器' : 'Codex'}界面`}
+            aria-pressed={interfaceMode === 'reader'}
+            onClick={() => setInterfaceMode(interfaceMode === 'codex' ? 'reader' : 'codex')}
+          >
+            <span className="brand-mark"><BookOpen size={17} strokeWidth={1.8} /></span>
+            <strong>{interfaceMode === 'codex' ? 'Codex' : '阅读器'}</strong>
+            <ChevronDown size={13} strokeWidth={1.7} />
+          </button>
           <button className="icon-button sidebar-close mobile-only" aria-label="关闭书库侧栏" onClick={() => setSidebarOpen(false)}><X size={16} /></button>
         </div>
 
@@ -325,7 +341,7 @@ function App() {
 
       {inspectorOpen && activeBook && (
         <aside className="inspector">
-          <div className="inspector-head"><span>详情</span><button className="icon-button" aria-label="关闭详情" onClick={() => setInspectorOpen(false)}><X size={15} /></button></div>
+          <div className="inspector-head"><span>{interfaceMode === 'codex' ? '上下文' : '详情'}</span><button className="icon-button" aria-label="关闭详情" onClick={() => setInspectorOpen(false)}><X size={15} /></button></div>
           <section className="book-card">
             <div className="cover" aria-hidden="true"><span>{activeBook.title.slice(0, 4)}</span><i /></div>
             <div>
