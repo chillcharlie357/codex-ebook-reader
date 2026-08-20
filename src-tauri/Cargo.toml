@@ -1,0 +1,16 @@
+[package]
+name = "codex-reader"
+version = "0.2.0"
+description = "A private, dual-skin desktop ebook reader"
+authors = ["Codex Reader contributors"]
+edition = "2021"
+
+[lib]
+name = "codex_reader_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }

@@ -1,7 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;600&family=Noto+Serif+SC:wght@400;500;600&display=swap');
-
 :root {
-  font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Noto Sans SC', sans-serif;
   color: #242628;
   background: #eef0f1;
   font-synthesis: none;
@@ -48,9 +46,9 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
 }
 
 .traffic-lights { display: flex; gap: 8px; padding-left: 15px; }
-.traffic-lights i { width: 12px; height: 12px; border-radius: 50%; background: #ff5f57; box-shadow: inset 0 0 0 1px rgba(0,0,0,.08); }
-.traffic-lights i:nth-child(2) { background: #febc2e; }
-.traffic-lights i:nth-child(3) { background: #28c840; }
+.traffic-lights button { width: 12px; height: 12px; padding: 0; border: 0; border-radius: 50%; background: #ff5f57; box-shadow: inset 0 0 0 1px rgba(0,0,0,.08); cursor: default; }
+.traffic-lights button:nth-child(2) { background: #febc2e; }
+.traffic-lights button:nth-child(3) { background: #28c840; }
 .window-title { justify-self: center; font-size: 12px; font-weight: 500; color: var(--muted); }
 .window-actions { justify-self: end; display: flex; gap: 4px; padding-right: 10px; }
 .icon-button { display: grid; place-items: center; width: 30px; height: 30px; border: 0; border-radius: 7px; background: transparent; cursor: pointer; }
@@ -102,10 +100,10 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
 .reader { flex: 1; min-height: 0; overflow-y: auto; scroll-behavior: smooth; }
 .reader-page { width: min(var(--reader-width), calc(100% - 72px)); margin: 0 auto; padding: clamp(72px, 10vh, 118px) 0 88px; }
 .chapter-kicker { color: var(--accent); font: 500 10px 'DM Mono', monospace; letter-spacing: .12em; text-transform: uppercase; }
-.reader h1 { max-width: 90%; margin: 15px 0 26px; font: 600 clamp(31px, 4vw, 47px)/1.25 'Noto Serif SC', serif; letter-spacing: -.035em; }
+.reader h1 { max-width: 90%; margin: 15px 0 26px; font: 600 clamp(31px, 4vw, 47px)/1.25 'Songti SC', 'Noto Serif SC', serif; letter-spacing: -.035em; }
 .chapter-rule { display: flex; align-items: center; width: 100%; height: 1px; margin-bottom: 46px; background: var(--hairline); }
 .chapter-rule span { display: block; width: 52px; height: 1px; background: var(--accent); }
-.prose { color: var(--ink); font: 400 var(--reader-size)/var(--reader-leading) 'Noto Serif SC', serif; letter-spacing: .015em; }
+.prose { color: var(--ink); font: 400 var(--reader-size)/var(--reader-leading) 'Songti SC', 'Noto Serif SC', serif; letter-spacing: .015em; }
 .prose p { margin: 0 0 1.05em; text-align: justify; text-justify: inter-ideograph; }
 .prose p:first-child::first-letter { float: left; margin: .09em .13em 0 0; color: var(--accent); font-size: 3.15em; font-weight: 600; line-height: .8; }
 .chapter-navigation { display: flex; justify-content: space-between; gap: 16px; margin-top: 70px; padding-top: 24px; border-top: 1px solid var(--hairline); }
@@ -116,10 +114,10 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
 .inspector { grid-column: 3; grid-row: 2; min-width: 0; padding: 0 13px 17px; background: var(--chrome); border-left: 1px solid var(--hairline); overflow-y: auto; }
 .inspector-head { height: 48px; display: flex; align-items: center; justify-content: space-between; color: var(--muted); font-size: 11px; }
 .book-card { display: grid; grid-template-columns: 64px 1fr; gap: 14px; padding: 16px; background: color-mix(in srgb, var(--paper) 80%, transparent); border: 1px solid var(--hairline); border-radius: 12px; box-shadow: 0 8px 28px rgba(19,25,22,.05); }
-.cover { position: relative; display: grid; place-items: center; width: 64px; height: 88px; overflow: hidden; color: #d7e3de; background: #283d35; border-radius: 3px 7px 7px 3px; box-shadow: 4px 5px 10px rgba(23, 31, 27, .15); writing-mode: vertical-rl; font: 500 13px 'Noto Serif SC', serif; letter-spacing: .15em; }
+.cover { position: relative; display: grid; place-items: center; width: 64px; height: 88px; overflow: hidden; color: #d7e3de; background: #283d35; border-radius: 3px 7px 7px 3px; box-shadow: 4px 5px 10px rgba(23, 31, 27, .15); writing-mode: vertical-rl; font: 500 13px 'Songti SC', 'Noto Serif SC', serif; letter-spacing: .15em; }
 .cover::before { content: ''; position: absolute; left: 5px; top: 0; bottom: 0; width: 1px; background: rgba(255,255,255,.17); }
 .cover i { position: absolute; right: -16px; bottom: -18px; width: 48px; height: 48px; border: 1px solid rgba(255,255,255,.16); border-radius: 50%; }
-.book-card h2 { margin: 3px 0 6px; font: 600 14px/1.45 'Noto Serif SC', serif; }
+.book-card h2 { margin: 3px 0 6px; font: 600 14px/1.45 'Songti SC', 'Noto Serif SC', serif; }
 .book-card p { margin: 0 0 10px; color: var(--muted); font-size: 10.5px; }
 .format-pill { padding: 3px 6px; color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent); border-radius: 4px; font: 500 9px 'DM Mono', monospace; }
 .meta-section, .note-section { margin-top: 17px; padding: 14px; border: 1px solid var(--hairline); border-radius: 11px; background: color-mix(in srgb, var(--paper) 60%, transparent); }
@@ -138,7 +136,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
 .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; width: min(480px, calc(100% - 48px)); margin: 0 auto; text-align: center; }
 .empty-glyph { display: grid; place-items: center; width: 62px; height: 62px; margin-bottom: 26px; color: var(--accent); border: 1px solid var(--hairline); border-radius: 18px; background: color-mix(in srgb, var(--chrome) 70%, transparent); box-shadow: 0 12px 30px rgba(20,25,23,.06); transform: rotate(-3deg); }
 .empty-eyebrow { margin: 0 0 8px !important; color: var(--accent) !important; font: 500 10px 'DM Mono', monospace !important; letter-spacing: .12em; text-transform: uppercase; }
-.empty-state h1 { margin: 0; font: 600 32px 'Noto Serif SC', serif; letter-spacing: -.04em; }
+.empty-state h1 { margin: 0; font: 600 32px 'Songti SC', 'Noto Serif SC', serif; letter-spacing: -.04em; }
 .empty-state p { max-width: 400px; margin: 13px 0 22px; color: var(--muted); font-size: 12px; line-height: 1.8; }
 .empty-state button { display: flex; align-items: center; gap: 7px; padding: 9px 14px; border: 0; border-radius: 8px; color: #eef4f1; background: #2a4037; cursor: pointer; box-shadow: 0 6px 16px rgba(32,56,46,.16); }
 .empty-state > span { margin-top: 12px; color: var(--muted); font-size: 10px; }
@@ -154,7 +152,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
 .toast { position: fixed; z-index: 80; left: 50%; bottom: 22px; display: flex; align-items: center; gap: 16px; max-width: min(460px, calc(100% - 32px)); padding: 10px 12px 10px 15px; border: 1px solid rgba(164,64,58,.18); border-radius: 9px; color: #8e3732; background: #fff5f4; box-shadow: 0 12px 30px rgba(58,23,21,.12); font-size: 11px; transform: translateX(-50%); }
 .toast button { display: grid; place-items: center; padding: 0; border: 0; background: transparent; cursor: pointer; }
 .drop-overlay { position: fixed; z-index: 100; inset: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 9px; color: #e7efeb; background: rgba(31,52,43,.92); border: 1px solid rgba(255,255,255,.2); border-radius: 14px; backdrop-filter: blur(15px); pointer-events: none; }
-.drop-overlay strong { font: 500 18px 'Noto Serif SC', serif; }
+.drop-overlay strong { font: 500 18px 'Songti SC', 'Noto Serif SC', serif; }
 .drop-overlay span { opacity: .6; font: 10px 'DM Mono', monospace; }
 
 /* Codex mode deliberately follows the supplied desktop reference: its window
@@ -167,7 +165,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
   --muted: #8a8d8c;
   --hairline: rgba(26, 28, 27, .08);
   --accent: #5d6f67;
-  grid-template: minmax(0, 1fr) / 292px minmax(520px, 1fr) 324px;
+  grid-template: minmax(0, 1fr) / 292px minmax(520px, 1fr) 320px;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Noto Sans SC', sans-serif;
 }
 .skin-codex .window-bar {
@@ -181,7 +179,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
   backdrop-filter: none;
 }
 .skin-codex .traffic-lights { gap: 10px; padding-left: 17px; }
-.skin-codex .traffic-lights i { width: 14px; height: 14px; }
+.skin-codex .traffic-lights button { width: 14px; height: 14px; }
 .skin-codex .window-title,
 .skin-codex .window-actions { display: none; }
 .skin-codex .sidebar { grid-row: 1; padding-top: 50px; }
@@ -229,7 +227,10 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
 .skin-codex .book-card { border-radius: 18px; }
 .skin-codex .meta-section,
 .skin-codex .note-section { border-radius: 16px; }
-.skin-codex .cover { color: #edf0ef; background: #414947; }
+.skin-codex .cover { color: #edf0ef; background: #414947; writing-mode: horizontal-tb; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif; letter-spacing: 0; text-align: center; }
+.skin-codex .book-card h2 { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif; }
+.skin-codex .empty-state h1,
+.skin-codex .drop-overlay strong { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif; }
 .skin-codex .settings-popover { top: 12px; right: 52px; background: rgba(255, 255, 255, .96); }
 .skin-codex .theme-switcher { display: none; }
 

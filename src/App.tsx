@@ -15,7 +15,7 @@ import {
 } from 'lucide-react'
 import { ChangeEvent, DragEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { libraryDb } from './db'
-import { INTERFACE_MODE_STORAGE_KEY, parseInterfaceMode } from './interfaceMode'
+import { readInterfaceMode, writeInterfaceMode } from './interfaceMode'
 import { parseBook } from './parsers'
 import type { Book, ReaderSettings } from './types'
 
@@ -45,6 +45,11 @@ function readSettings(): ReaderSettings {
   }
 }
 
+function runWindowAction(action: 'close' | 'minimize' | 'toggleMaximize') {
+  if (!('__TAURI_INTERNALS__' in window)) return
+  void import('@tauri-apps/api/window').then(({ getCurrentWindow }) => getCurrentWindow()[action]())
+}
+
 function App() {
   const [books, setBooks] = useState<Book[]>([])
   const [activeBookId, setActiveBookId] = useState<string | null>(null)
@@ -52,7 +57,7 @@ function App() {
   const [query, setQuery] = useState('')
   const [note, setNote] = useState('')
   const [settings, setSettings] = useState<ReaderSettings>(readSettings)
-  const [interfaceMode, setInterfaceMode] = useState(() => parseInterfaceMode(localStorage.getItem(INTERFACE_MODE_STORAGE_KEY)))
+  const [interfaceMode, setInterfaceMode] = useState(() => readInterfaceMode(localStorage))
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [inspectorOpen, setInspectorOpen] = useState(() => window.innerWidth > 1080)
   const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth > 720)
@@ -100,7 +105,7 @@ function App() {
   }, [settings])
 
   useEffect(() => {
-    localStorage.setItem(INTERFACE_MODE_STORAGE_KEY, interfaceMode)
+    writeInterfaceMode(localStorage, interfaceMode)
   }, [interfaceMode])
 
   useEffect(() => {
@@ -227,8 +232,12 @@ function App() {
         onChange={onFilesSelected}
       />
 
-      <div className="window-bar">
-        <div className="traffic-lights" aria-hidden="true"><i /><i /><i /></div>
+      <div className="window-bar" data-tauri-drag-region>
+        <div className="traffic-lights">
+          <button type="button" aria-label="关闭窗口" onClick={() => runWindowAction('close')} />
+          <button type="button" aria-label="最小化窗口" onClick={() => runWindowAction('minimize')} />
+          <button type="button" aria-label="切换窗口大小" onClick={() => runWindowAction('toggleMaximize')} />
+        </div>
         <button className="icon-button mobile-only" aria-label="切换书库侧栏" onClick={() => setSidebarOpen((value) => !value)}><Menu size={17} /></button>
         <span className="window-title">{interfaceMode === 'codex' ? 'Codex' : 'Codex Reader'}</span>
         <div className="window-actions">
