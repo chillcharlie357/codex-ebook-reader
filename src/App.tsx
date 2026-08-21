@@ -1,19 +1,33 @@
 import {
+  ArrowUp,
+  Bell,
   BookOpen,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
+  Clock3,
+  Copy,
   FilePlus2,
+  Folder,
+  GitBranch,
+  GitPullRequest,
   Library,
+  Maximize2,
   Menu,
   MoreHorizontal,
+  PanelLeft,
   PanelRight,
+  Plus,
+  Puzzle,
   Search,
   Settings2,
+  SlidersHorizontal,
+  SquarePen,
   Trash2,
   X,
 } from 'lucide-react'
 import { ChangeEvent, DragEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { CODEX_COPY, codexRecentChapters } from './codexPresentation'
 import { libraryDb } from './db'
 import { readInterfaceMode, writeInterfaceMode } from './interfaceMode'
 import { parseBook } from './parsers'
@@ -59,6 +73,8 @@ function App() {
   const [settings, setSettings] = useState<ReaderSettings>(readSettings)
   const [interfaceMode, setInterfaceMode] = useState(() => readInterfaceMode(localStorage))
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [notificationsOpen, setNotificationsOpen] = useState(false)
   const [inspectorOpen, setInspectorOpen] = useState(() => window.innerWidth > 1080)
   const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth > 720)
   const [dragging, setDragging] = useState(false)
@@ -78,6 +94,18 @@ function App() {
       .map((chapter, index) => ({ chapter, index }))
       .filter(({ chapter }) => !normalized || chapter.title.toLocaleLowerCase().includes(normalized))
   }, [activeBook, query])
+  const searchResults = useMemo(() => {
+    const normalized = query.trim().toLocaleLowerCase()
+    if (!normalized) return []
+    return books.flatMap((book) => book.chapters
+      .map((chapter, index) => ({ book, chapter, index }))
+      .filter(({ book: resultBook, chapter }) => `${resultBook.title} ${chapter.title}`.toLocaleLowerCase().includes(normalized)))
+      .slice(0, 12)
+  }, [books, query])
+  const recentChapters = useMemo(
+    () => codexRecentChapters(activeBook, activeChapterIndex, 12),
+    [activeBook, activeChapterIndex],
+  )
 
   const loadBook = useCallback(async (book: Book) => {
     setActiveBookId(book.id)
@@ -113,6 +141,10 @@ function App() {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'o') {
         event.preventDefault()
         fileInputRef.current?.click()
+      }
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k' && interfaceMode === 'codex') {
+        event.preventDefault()
+        setSearchOpen(true)
       }
       if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) return
       if (event.key === 'ArrowLeft') goToChapter(activeChapterIndex - 1)
@@ -168,6 +200,19 @@ function App() {
     void libraryDb.saveProgress({
       bookId: activeBook.id,
       chapterId: activeBook.chapters[index].id,
+      chapterIndex: index,
+      scrollRatio: 0,
+      updatedAt: Date.now(),
+    })
+  }
+
+  const openBookChapter = async (book: Book, index: number) => {
+    await loadBook(book)
+    setActiveChapterIndex(index)
+    setScrollRatio(0)
+    void libraryDb.saveProgress({
+      bookId: book.id,
+      chapterId: book.chapters[index].id,
       chapterIndex: index,
       scrollRatio: 0,
       updatedAt: Date.now(),
@@ -238,6 +283,13 @@ function App() {
           <button type="button" aria-label="最小化窗口" onClick={() => runWindowAction('minimize')} />
           <button type="button" aria-label="切换窗口大小" onClick={() => runWindowAction('toggleMaximize')} />
         </div>
+        {interfaceMode === 'codex' && (
+          <div className="codex-window-nav">
+            <button className="icon-button" aria-label="切换边栏"><PanelLeft size={15} /></button>
+            <button className="icon-button" aria-label="后退"><ChevronLeft size={15} /></button>
+            <button className="icon-button" aria-label="前进"><ChevronRight size={15} /></button>
+          </div>
+        )}
         <button className="icon-button mobile-only" aria-label="切换书库侧栏" onClick={() => setSidebarOpen((value) => !value)}><Menu size={17} /></button>
         <span className="window-title">{interfaceMode === 'codex' ? 'Codex' : 'Codex Reader'}</span>
         <div className="window-actions">
@@ -256,54 +308,121 @@ function App() {
             onClick={() => setInterfaceMode(interfaceMode === 'codex' ? 'reader' : 'codex')}
           >
             <span className="brand-mark"><BookOpen size={17} strokeWidth={1.8} /></span>
-            <strong>{interfaceMode === 'codex' ? 'Codex' : '阅读器'}</strong>
+            <strong>{interfaceMode === 'codex' ? CODEX_COPY.brand : '阅读器'}</strong>
             <ChevronDown size={13} strokeWidth={1.7} />
           </button>
+          {interfaceMode === 'codex' && (
+            <div className="codex-brand-actions">
+              <button className="icon-button" aria-label="搜索" onClick={() => { setSearchOpen(true); setNotificationsOpen(false) }}><Search size={17} /></button>
+              <button className="icon-button" aria-label="通知" onClick={() => { setNotificationsOpen((value) => !value); setSearchOpen(false) }}><Bell size={17} /></button>
+            </div>
+          )}
           <button className="icon-button sidebar-close mobile-only" aria-label="关闭书库侧栏" onClick={() => setSidebarOpen(false)}><X size={16} /></button>
         </div>
 
-        <button className="import-button" onClick={() => fileInputRef.current?.click()} disabled={importing}>
-          <FilePlus2 size={16} />
-          {importing ? '正在解析…' : '导入电子书'}
-          <kbd>⌘O</kbd>
-        </button>
-
-        <div className="section-label"><span>书籍</span><span>{books.length}</span></div>
-        <nav className="book-list" aria-label="书籍列表">
-          {books.map((book) => (
-            <div key={book.id} className="book-group">
-              <button className={`book-row ${book.id === activeBookId ? 'active' : ''}`} onClick={() => void loadBook(book)}>
-                <Library size={15} />
-                <span>{book.title}</span>
-                <ChevronDown size={13} />
-              </button>
-              {book.id === activeBookId && (
-                <div className="chapter-tree">
-                  <div className="chapter-search">
-                    <Search size={13} />
-                    <input aria-label="搜索章节" placeholder="搜索章节" value={query} onChange={(event) => setQuery(event.target.value)} />
-                  </div>
-                  <div className="chapter-rail" aria-hidden="true"><span style={{ height: `${progress}%` }} /></div>
-                  <div className="chapter-list">
-                    {filteredChapters.map(({ chapter, index }) => (
-                      <button key={chapter.id} className={`chapter-row ${index === activeChapterIndex ? 'active' : ''}`} onClick={() => goToChapter(index)}>
-                        <span>{chapter.title}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
+        {interfaceMode === 'codex' ? (
+          <>
+            <nav className="codex-primary-nav" aria-label="Codex">
+              <button onClick={() => fileInputRef.current?.click()} disabled={importing}><SquarePen size={17} /><span>{CODEX_COPY.newThread}</span></button>
+              <button><GitPullRequest size={17} /><span>{CODEX_COPY.pullRequests}</span></button>
+              <button><Clock3 size={17} /><span>{CODEX_COPY.scheduled}</span></button>
+              <button><Puzzle size={17} /><span>{CODEX_COPY.plugins}</span></button>
+            </nav>
+            <div className="codex-section-heading">
+              <span>{CODEX_COPY.projects}</span>
+              <span className="codex-section-actions"><button aria-label="项目操作"><MoreHorizontal size={17} /></button><button aria-label="新建项目" onClick={() => fileInputRef.current?.click()}><Plus size={18} /></button></span>
             </div>
-          ))}
-        </nav>
-        <div className="sidebar-footer">
-          <span>仅保存在这台设备</span>
-          <span className="privacy-dot" />
-        </div>
+            <nav className="codex-project-list" aria-label={CODEX_COPY.projects}>
+              {books.map((book) => (
+                <button key={book.id} className={book.id === activeBookId ? 'active' : ''} onClick={() => void loadBook(book)}>
+                  <Folder size={17} /><span>{book.title}</span>{book.id === activeBookId && <SquarePen size={16} />}
+                </button>
+              ))}
+            </nav>
+            {books.length > 5 && <button className="codex-show-more">{CODEX_COPY.showMore}</button>}
+            <div className="codex-recent-heading">{CODEX_COPY.recent}</div>
+            <nav className="codex-recent-list" aria-label={CODEX_COPY.recent}>
+              {recentChapters.map((chapter) => (
+                <button key={chapter.index} className={chapter.index === activeChapterIndex ? 'active' : ''} onClick={() => goToChapter(chapter.index)}>{chapter.title}</button>
+              ))}
+            </nav>
+          </>
+        ) : (
+          <>
+            <button className="import-button" onClick={() => fileInputRef.current?.click()} disabled={importing}>
+              <FilePlus2 size={16} />
+              {importing ? '正在解析…' : '导入电子书'}
+              <kbd>⌘O</kbd>
+            </button>
+            <div className="section-label"><span>书籍</span><span>{books.length}</span></div>
+            <nav className="book-list" aria-label="书籍列表">
+              {books.map((book) => (
+                <div key={book.id} className="book-group">
+                  <button className={`book-row ${book.id === activeBookId ? 'active' : ''}`} onClick={() => void loadBook(book)}>
+                    <Library size={15} />
+                    <span>{book.title}</span>
+                    <ChevronDown size={13} />
+                  </button>
+                  {book.id === activeBookId && (
+                    <div className="chapter-tree">
+                      <div className="chapter-search">
+                        <Search size={13} />
+                        <input aria-label="搜索章节" placeholder="搜索章节" value={query} onChange={(event) => setQuery(event.target.value)} />
+                      </div>
+                      <div className="chapter-rail" aria-hidden="true"><span style={{ height: `${progress}%` }} /></div>
+                      <div className="chapter-list">
+                        {filteredChapters.map(({ chapter, index }) => (
+                          <button key={chapter.id} className={`chapter-row ${index === activeChapterIndex ? 'active' : ''}`} onClick={() => goToChapter(index)}>
+                            <span>{chapter.title}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </nav>
+            <div className="sidebar-footer"><span>仅保存在这台设备</span><span className="privacy-dot" /></div>
+          </>
+        )}
       </aside>
 
       <main className="workspace">
-        {activeBook && activeChapter ? (
+        {interfaceMode === 'codex' ? (
+          <>
+            <header className="codex-thread-toolbar">
+              <div><strong>{activeChapter?.title ?? ''}</strong>{activeChapter && <MoreHorizontal size={16} />}</div>
+              <div className="codex-view-actions">
+                <button className="icon-button" aria-label="视图设置"><SlidersHorizontal size={16} /></button>
+                <button className="icon-button" aria-label="切换产出面板" onClick={() => setInspectorOpen((value) => !value)}><PanelRight size={16} /></button>
+              </div>
+            </header>
+            <article ref={readerRef} className="codex-conversation" onScroll={onReaderScroll}>
+              {activeBook && activeChapter && (
+                <div className="codex-message">
+                  <div className="codex-response">
+                    <h1>{activeChapter.title}</h1>
+                    {activeChapter.paragraphs.map((paragraph, index) => <p key={`${index}-${paragraph.slice(0, 12)}`}>{paragraph}</p>)}
+                  </div>
+                  <div className="codex-message-actions">
+                    <button aria-label="复制"><Copy size={15} /></button>
+                    <button aria-label="展开"><Maximize2 size={15} /></button>
+                    <button aria-label="分支"><GitBranch size={15} /></button>
+                  </div>
+                </div>
+              )}
+            </article>
+            <div className="codex-composer">
+              <input aria-label={CODEX_COPY.composerPlaceholder} placeholder={CODEX_COPY.composerPlaceholder} />
+              <div>
+                <button className="codex-composer-action" aria-label="添加" onClick={() => fileInputRef.current?.click()}><Plus size={18} /></button>
+                <button className="codex-collaborate"><span className="codex-collaborate-mark">◎</span>{CODEX_COPY.collaborate}</button>
+                <span className="codex-model">5.6 SOL&nbsp; 高</span>
+                <button className="codex-send" aria-label="发送"><ArrowUp size={17} /></button>
+              </div>
+            </div>
+          </>
+        ) : activeBook && activeChapter ? (
           <>
             <header className="reader-toolbar">
               <div>
@@ -348,9 +467,22 @@ function App() {
         )}
       </main>
 
-      {inspectorOpen && activeBook && (
+      {interfaceMode === 'codex' && inspectorOpen && (
+        <aside className="codex-inspector">
+          <section>
+            <div><strong>{CODEX_COPY.output}</strong><button aria-label="添加产出"><Plus size={18} /></button></div>
+            <p>{CODEX_COPY.outputHint}</p>
+          </section>
+          <section>
+            <div><strong>{CODEX_COPY.sources}</strong><button aria-label="添加来源"><Plus size={18} /></button></div>
+            <p>{CODEX_COPY.sourcesHint}</p>
+          </section>
+        </aside>
+      )}
+
+      {interfaceMode === 'reader' && inspectorOpen && activeBook && (
         <aside className="inspector">
-          <div className="inspector-head"><span>{interfaceMode === 'codex' ? '上下文' : '详情'}</span><button className="icon-button" aria-label="关闭详情" onClick={() => setInspectorOpen(false)}><X size={15} /></button></div>
+          <div className="inspector-head"><span>详情</span><button className="icon-button" aria-label="关闭详情" onClick={() => setInspectorOpen(false)}><X size={15} /></button></div>
           <section className="book-card">
             <div className="cover" aria-hidden="true"><span>{activeBook.title.slice(0, 4)}</span><i /></div>
             <div>
@@ -376,7 +508,7 @@ function App() {
         </aside>
       )}
 
-      {settingsOpen && (
+      {interfaceMode === 'reader' && settingsOpen && (
         <div className="settings-popover">
           <div><strong>阅读外观</strong><button className="icon-button" aria-label="关闭阅读设置" onClick={() => setSettingsOpen(false)}><X size={14} /></button></div>
           <label>字号 <output>{settings.fontSize}px</output><input type="range" min="15" max="28" value={settings.fontSize} onChange={(event) => setSettings({ ...settings, fontSize: Number(event.target.value) })} /></label>
@@ -388,8 +520,27 @@ function App() {
         </div>
       )}
 
+      {interfaceMode === 'codex' && searchOpen && (
+        <div className="codex-popover codex-search-popover">
+          <div className="codex-search-field"><Search size={16} /><input autoFocus aria-label="搜索" placeholder="搜索" value={query} onChange={(event) => setQuery(event.target.value)} /><kbd>⌘K</kbd></div>
+          <div className="codex-search-results">
+            {searchResults.map(({ book, chapter, index }) => (
+              <button key={`${book.id}-${chapter.id}`} onClick={() => { void openBookChapter(book, index); setSearchOpen(false); setQuery('') }}>
+                <span>{chapter.title}</span><small>{book.title}</small>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {interfaceMode === 'codex' && notificationsOpen && (
+        <div className="codex-popover codex-notifications">
+          <strong>通知</strong><p>暂无新通知</p>
+        </div>
+      )}
+
       {error && <div className="toast" role="alert">{error}<button aria-label="关闭错误提示" onClick={() => setError('')}><X size={14} /></button></div>}
-      {dragging && <div className="drop-overlay"><FilePlus2 size={28} /><strong>放开以导入电子书</strong><span>TXT · EPUB · PDF · MD · HTML</span></div>}
+      {dragging && interfaceMode === 'reader' && <div className="drop-overlay"><FilePlus2 size={28} /><strong>放开以导入电子书</strong><span>TXT · EPUB · PDF · MD · HTML</span></div>}
     </div>
   )
 }
