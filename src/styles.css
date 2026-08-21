@@ -275,17 +275,6 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
 }
 .codex-recent-list button:hover,
 .codex-recent-list button.active { background: #e7eae9; }
-.codex-sidebar-footer {
-  display: grid;
-  grid-template-columns: 24px minmax(0, 1fr) 18px;
-  align-items: center;
-  flex: 0 0 48px;
-  padding: 0 18px;
-  border-top: 1px solid #eaedec;
-  color: #4a4e4d;
-  font-size: 13px;
-}
-.codex-sidebar-footer svg:last-child { color: #979c9a; }
 .skin-codex .workspace { position: relative; grid-row: 1; min-height: 0; }
 .codex-thread-toolbar {
   display: flex;

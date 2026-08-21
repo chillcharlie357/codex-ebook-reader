@@ -5,7 +5,6 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  CircleHelp,
   Clock3,
   Copy,
   FilePlus2,
@@ -347,7 +346,6 @@ function App() {
                 <button key={chapter.index} className={chapter.index === activeChapterIndex ? 'active' : ''} onClick={() => goToChapter(chapter.index)}>{chapter.title}</button>
               ))}
             </nav>
-            <div className="codex-sidebar-footer"><Settings2 size={16} /><span>{CODEX_COPY.modelHub}</span><CircleHelp size={15} /></div>
           </>
         ) : (
           <>

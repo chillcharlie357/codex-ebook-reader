@@ -9,7 +9,6 @@ export const CODEX_COPY = {
   projects: '项目',
   showMore: '展开显示',
   recent: '最近',
-  modelHub: 'ModelHub',
   output: '产出',
   outputHint: '创建文件或站点',
   sources: '来源',

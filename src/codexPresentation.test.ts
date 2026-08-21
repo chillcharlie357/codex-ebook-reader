@@ -35,7 +35,7 @@ describe('Codex presentation model', () => {
       composerPlaceholder: '随心输入',
     })
 
-    expect(JSON.stringify(CODEX_COPY)).not.toMatch(/导入|电子书|mock/i)
+    expect(JSON.stringify(CODEX_COPY)).not.toMatch(/导入|电子书|mock|modelhub/i)
   })
 
   it('builds recent conversations from the active chapter backwards', () => {
