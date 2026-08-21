@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { CODEX_COPY, codexChapterDirectory } from './codexPresentation'
+import {
+  CODEX_COPY,
+  codexChapterDirectory,
+  createCodexPromptSubmission,
+  createCodexPromptThreadKey,
+  shouldShowCodexScrollControl,
+} from './codexPresentation'
 import type { Book } from './types'
 
 const book: Book = {
@@ -57,5 +63,22 @@ describe('Codex presentation model', () => {
     expect(codexChapterDirectory({ ...book, chapters })).toEqual(
       chapters.map((chapter, index) => ({ index, title: chapter.title })),
     )
+  })
+
+  it('normalizes a submitted prompt and starts the thinking state', () => {
+    expect(createCodexPromptSubmission('  test  ', 4)).toEqual({ message: 'test', requestId: 5, status: 'thinking' })
+    expect(createCodexPromptSubmission('   ')).toBeNull()
+  })
+
+  it('derives a stable prompt thread key from the active reading context', () => {
+    expect(createCodexPromptThreadKey('book-1', 'chapter-1')).toBe('book-1:chapter-1')
+    expect(createCodexPromptThreadKey('book-1', 'chapter-2')).not.toBe('book-1:chapter-1')
+    expect(createCodexPromptThreadKey(null, undefined)).toBe('empty')
+  })
+
+  it('shows the latest-message control only when content remains below the viewport', () => {
+    expect(shouldShowCodexScrollControl({ scrollHeight: 1200, clientHeight: 600, scrollTop: 300 })).toBe(true)
+    expect(shouldShowCodexScrollControl({ scrollHeight: 1200, clientHeight: 600, scrollTop: 590 })).toBe(false)
+    expect(shouldShowCodexScrollControl({ scrollHeight: 600, clientHeight: 600, scrollTop: 0 })).toBe(false)
   })
 })
