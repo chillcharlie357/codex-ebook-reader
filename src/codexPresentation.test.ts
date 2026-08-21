@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { CODEX_COPY, codexRecentChapters } from './codexPresentation'
+import { CODEX_COPY, codexChapterDirectory } from './codexPresentation'
 import type { Book } from './types'
 
 const book: Book = {
@@ -38,10 +38,24 @@ describe('Codex presentation model', () => {
     expect(JSON.stringify(CODEX_COPY)).not.toMatch(/导入|电子书|mock|modelhub/i)
   })
 
-  it('builds recent conversations from the active chapter backwards', () => {
-    expect(codexRecentChapters(book, 2, 2)).toEqual([
-      { index: 2, title: '第三章 克莱恩' },
+  it('builds the chapter directory in reading order', () => {
+    expect(codexChapterDirectory(book)).toEqual([
+      { index: 0, title: '第一章 绯红' },
       { index: 1, title: '第二章 情况' },
+      { index: 2, title: '第三章 克莱恩' },
     ])
+  })
+
+  it('keeps every chapter navigable when a book opens on its first chapter', () => {
+    const chapters = Array.from({ length: 20 }, (_, index) => ({
+      id: `chapter-${index + 1}`,
+      title: `第 ${index + 1} 章`,
+      paragraphs: [`正文 ${index + 1}`],
+      wordCount: 3,
+    }))
+
+    expect(codexChapterDirectory({ ...book, chapters })).toEqual(
+      chapters.map((chapter, index) => ({ index, title: chapter.title })),
+    )
   })
 })

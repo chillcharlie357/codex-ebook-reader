@@ -28,7 +28,7 @@ import {
   X,
 } from 'lucide-react'
 import { ChangeEvent, DragEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { CODEX_COPY, codexRecentChapters } from './codexPresentation'
+import { CODEX_COPY, codexChapterDirectory } from './codexPresentation'
 import { libraryDb } from './db'
 import { readInterfaceMode, writeInterfaceMode } from './interfaceMode'
 import { parseBook } from './parsers'
@@ -111,10 +111,7 @@ function App() {
       .filter(({ book: resultBook, chapter }) => `${resultBook.title} ${chapter.title}`.toLocaleLowerCase().includes(normalized)))
       .slice(0, 12)
   }, [books, query])
-  const recentChapters = useMemo(
-    () => codexRecentChapters(activeBook, activeChapterIndex, 12),
-    [activeBook, activeChapterIndex],
-  )
+  const chapterDirectory = useMemo(() => codexChapterDirectory(activeBook), [activeBook])
 
   const loadBook = useCallback(async (book: Book) => {
     setActiveBookId(book.id)
@@ -363,7 +360,7 @@ function App() {
             {books.length > 5 && <button className="codex-show-more">{CODEX_COPY.showMore}</button>}
             <div className="codex-recent-heading">{CODEX_COPY.recent}</div>
             <nav className="codex-recent-list" aria-label={CODEX_COPY.recent}>
-              {recentChapters.map((chapter) => (
+              {chapterDirectory.map((chapter) => (
                 <button key={chapter.index} className={chapter.index === activeChapterIndex ? 'active' : ''} onClick={() => goToChapter(chapter.index)}>{chapter.title}</button>
               ))}
             </nav>

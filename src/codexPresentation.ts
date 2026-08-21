@@ -17,12 +17,9 @@ export const CODEX_COPY = {
   collaborate: '帮我批准',
 } as const
 
-export function codexRecentChapters(book: Book | null, activeIndex: number, limit = 10) {
-  if (!book || limit <= 0) return []
+export function codexChapterDirectory(book: Book | null) {
+  if (!book) return []
 
   return book.chapters
-    .slice(0, activeIndex + 1)
     .map((chapter, index) => ({ index, title: chapter.title }))
-    .reverse()
-    .slice(0, limit)
 }
