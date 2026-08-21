@@ -1,5 +1,7 @@
 import {
+  ArrowDown,
   ArrowUp,
+  BadgeHelp,
   Bell,
   BookOpen,
   ChevronDown,
@@ -27,8 +29,15 @@ import {
   Trash2,
   X,
 } from 'lucide-react'
-import { ChangeEvent, DragEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { CODEX_COPY, codexChapterDirectory } from './codexPresentation'
+import { ChangeEvent, DragEvent, FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import {
+  CODEX_COPY,
+  CODEX_THINKING_DURATION_MS,
+  codexChapterDirectory,
+  createCodexPromptSubmission,
+  createCodexPromptThreadKey,
+  shouldShowCodexScrollControl,
+} from './codexPresentation'
 import { libraryDb } from './db'
 import { readInterfaceMode, writeInterfaceMode } from './interfaceMode'
 import { parseBook } from './parsers'
@@ -46,6 +55,11 @@ type UpdateState = {
   status: 'idle' | 'checking' | 'current' | 'available' | 'error'
   latestVersion?: string
   releaseUrl?: string
+}
+
+type CodexPromptMessage = {
+  id: number
+  text: string
 }
 
 function formatNumber(value: number) {
@@ -90,12 +104,19 @@ function App() {
   const [importing, setImporting] = useState(false)
   const [error, setError] = useState('')
   const [scrollRatio, setScrollRatio] = useState(0)
+  const [codexPrompt, setCodexPrompt] = useState('')
+  const [codexMessages, setCodexMessages] = useState<CodexPromptMessage[]>([])
+  const [codexThinkingRequestId, setCodexThinkingRequestId] = useState<number | null>(null)
+  const [showCodexScrollControl, setShowCodexScrollControl] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const readerRef = useRef<HTMLElement>(null)
   const noteTimer = useRef<number | null>(null)
+  const codexThinkingTimer = useRef<number | null>(null)
+  const codexRequestId = useRef(0)
 
   const activeBook = useMemo(() => books.find((book) => book.id === activeBookId) ?? null, [activeBookId, books])
   const activeChapter = activeBook?.chapters[activeChapterIndex]
+  const codexPromptThreadKey = createCodexPromptThreadKey(activeBookId, activeChapter?.id)
   const filteredChapters = useMemo(() => {
     if (!activeBook) return []
     const normalized = query.trim().toLocaleLowerCase()
@@ -163,8 +184,27 @@ function App() {
   useEffect(() => {
     return () => {
       if (noteTimer.current) window.clearTimeout(noteTimer.current)
+      if (codexThinkingTimer.current) window.clearTimeout(codexThinkingTimer.current)
     }
   }, [])
+
+  useEffect(() => {
+    if (codexThinkingTimer.current) window.clearTimeout(codexThinkingTimer.current)
+    codexThinkingTimer.current = null
+    codexRequestId.current = 0
+    setCodexPrompt('')
+    setCodexMessages([])
+    setCodexThinkingRequestId(null)
+  }, [codexPromptThreadKey])
+
+  useEffect(() => {
+    if (interfaceMode !== 'codex') return
+    const frame = window.requestAnimationFrame(() => {
+      const conversation = readerRef.current
+      if (conversation) setShowCodexScrollControl(shouldShowCodexScrollControl(conversation))
+    })
+    return () => window.cancelAnimationFrame(frame)
+  }, [activeBookId, activeChapterIndex, codexMessages.length, interfaceMode])
 
   const importFiles = async (files: File[]) => {
     if (!files.length) return
@@ -239,6 +279,35 @@ function App() {
       scrollRatio: ratio,
       updatedAt: Date.now(),
     })
+  }
+
+  const onCodexScroll = () => {
+    const conversation = readerRef.current
+    if (conversation) setShowCodexScrollControl(shouldShowCodexScrollControl(conversation))
+    onReaderScroll()
+  }
+
+  const scrollToLatestCodexMessage = () => {
+    const conversation = readerRef.current
+    if (!conversation) return
+    conversation.scrollTo({ top: conversation.scrollHeight, behavior: 'smooth' })
+  }
+
+  const submitCodexPrompt = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const submission = createCodexPromptSubmission(codexPrompt, codexRequestId.current)
+    if (!submission) return
+
+    codexRequestId.current = submission.requestId
+    setCodexMessages((messages) => [...messages, { id: submission.requestId, text: submission.message }])
+    setCodexThinkingRequestId(submission.requestId)
+    setCodexPrompt('')
+    if (codexThinkingTimer.current) window.clearTimeout(codexThinkingTimer.current)
+    codexThinkingTimer.current = window.setTimeout(() => {
+      setCodexThinkingRequestId((requestId) => requestId === submission.requestId ? null : requestId)
+      codexThinkingTimer.current = null
+    }, CODEX_THINKING_DURATION_MS)
+    window.requestAnimationFrame(scrollToLatestCodexMessage)
   }
 
   const updateNote = (value: string) => {
@@ -415,7 +484,7 @@ function App() {
                 <button className="icon-button" aria-label="切换产出面板" onClick={() => setInspectorOpen((value) => !value)}><PanelRight size={16} /></button>
               </div>
             </header>
-            <article ref={readerRef} className="codex-conversation" onScroll={onReaderScroll}>
+            <article ref={readerRef} className="codex-conversation" onScroll={onCodexScroll}>
               {activeBook && activeChapter && (
                 <div className="codex-message">
                   <div className="codex-response">
@@ -429,16 +498,36 @@ function App() {
                   </div>
                 </div>
               )}
+              {codexMessages.map((message) => (
+                <div className="codex-user-message" key={message.id}>
+                  <span>{message.text}</span>
+                </div>
+              ))}
+              {codexThinkingRequestId !== null && (
+                <div className="codex-thinking" key={codexThinkingRequestId} role="status" aria-live="polite" aria-atomic="true">
+                  <span>{CODEX_COPY.thinking}</span>
+                </div>
+              )}
             </article>
-            <div className="codex-composer">
-              <input aria-label={CODEX_COPY.composerPlaceholder} placeholder={CODEX_COPY.composerPlaceholder} />
+            {showCodexScrollControl && (
+              <button className="codex-scroll-latest" type="button" aria-label="滚动到最新消息" onClick={scrollToLatestCodexMessage}>
+                <ArrowDown size={20} strokeWidth={1.8} />
+              </button>
+            )}
+            <form className="codex-composer" onSubmit={submitCodexPrompt}>
+              <input
+                aria-label={CODEX_COPY.composerPlaceholder}
+                placeholder={CODEX_COPY.composerPlaceholder}
+                value={codexPrompt}
+                onChange={(event) => setCodexPrompt(event.target.value)}
+              />
               <div>
-                <button className="codex-composer-action" aria-label="添加" onClick={() => fileInputRef.current?.click()}><Plus size={18} /></button>
-                <button className="codex-collaborate"><span className="codex-collaborate-mark">◎</span>{CODEX_COPY.collaborate}</button>
+                <button className="codex-composer-action" type="button" aria-label="添加" onClick={() => fileInputRef.current?.click()}><Plus size={18} /></button>
+                <button className="codex-collaborate" type="button"><BadgeHelp size={17} strokeWidth={1.7} />{CODEX_COPY.collaborate}</button>
                 <span className="codex-model">5.6 SOL&nbsp; 高</span>
-                <button className="codex-send" aria-label="发送"><ArrowUp size={17} /></button>
+                <button className="codex-send" type="submit" aria-label="发送" disabled={!codexPrompt.trim()}><ArrowUp size={17} /></button>
               </div>
-            </div>
+            </form>
           </>
         ) : activeBook && activeChapter ? (
           <>

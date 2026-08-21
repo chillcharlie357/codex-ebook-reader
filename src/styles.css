@@ -304,11 +304,15 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
 .codex-conversation {
   flex: 1;
   min-height: 0;
+  padding-bottom: 160px;
   overflow-y: auto;
   scroll-behavior: smooth;
   scrollbar-width: thin;
 }
-.codex-message { width: min(785px, calc(100% - 88px)); margin: 5px auto 0; padding: 0 0 160px; }
+.codex-message,
+.codex-user-message,
+.codex-thinking { width: min(785px, calc(100% - 88px)); margin-right: auto; margin-left: auto; }
+.codex-message { margin-top: 5px; }
 .codex-response { color: #292b2b; font-size: 15px; line-height: 1.78; }
 .codex-response h1 {
   margin: 22px 0 12px;
@@ -332,6 +336,49 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
   background: transparent;
   cursor: pointer;
 }
+.codex-user-message { display: flex; justify-content: flex-end; margin-top: 24px; }
+.codex-user-message span {
+  max-width: min(72%, 620px);
+  padding: 10px 14px;
+  border-radius: 17px;
+  color: #282a2a;
+  background: #f2f3f3;
+  font-size: 15px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+.codex-thinking { margin-top: 24px; font-size: 15px; font-weight: 620; }
+.codex-thinking span {
+  color: transparent;
+  background: linear-gradient(100deg, #b7bbba 15%, #e5e7e6 42%, #a6aaa9 62%, #d4d7d6 82%);
+  background-size: 240% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  animation: codex-thinking-shimmer 1.5s ease-in-out infinite;
+}
+@keyframes codex-thinking-shimmer {
+  from { background-position: 100% 50%; }
+  to { background-position: -100% 50%; }
+}
+.codex-scroll-latest {
+  position: absolute;
+  z-index: 13;
+  bottom: 146px;
+  left: 50%;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid #e2e4e3;
+  border-radius: 50%;
+  color: #252727;
+  background: rgba(255, 255, 255, .98);
+  box-shadow: 0 2px 6px rgba(38, 42, 41, .08);
+  cursor: pointer;
+  transform: translateX(-50%);
+}
+.codex-scroll-latest:hover { background: #f6f7f7; }
 .codex-composer {
   position: absolute;
   z-index: 12;
@@ -352,9 +399,10 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
 .codex-composer button { border: 0; background: transparent; cursor: pointer; }
 .codex-composer-action { display: grid; place-items: center; width: 31px; height: 31px; padding: 0; color: #5c6260; border-radius: 8px; }
 .codex-collaborate { display: flex; align-items: center; gap: 7px; margin-left: 7px; color: #9a9e9d; font-size: 12px; }
-.codex-collaborate-mark { color: #969b99; font-size: 15px; }
+.codex-collaborate svg { flex: 0 0 auto; color: #969b99; }
 .codex-model { margin-left: auto; color: #a2a6a5; font-size: 12px; }
-.codex-send { display: grid; place-items: center; width: 31px; height: 31px; margin-left: 10px; padding: 0; border-radius: 50%; color: #fff; background: #959a98 !important; }
+.codex-send { display: grid; place-items: center; width: 31px; height: 31px; margin-left: 10px; padding: 0; border-radius: 50%; color: #fff; background: #303332 !important; }
+.codex-send:disabled { background: #959a98 !important; cursor: default; }
 .codex-inspector {
   position: fixed;
   z-index: 11;
@@ -394,8 +442,11 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
 .codex-notifications p { margin: 18px 0 5px; color: #9da19f; font-size: 12px; text-align: center; }
 
 @media (min-width: 1081px) and (max-width: 1500px) {
-  .codex-message { width: min(700px, calc(100% - 380px)); margin-right: 350px; }
+  .codex-message,
+  .codex-user-message,
+  .codex-thinking { width: min(700px, calc(100% - 380px)); margin-right: 350px; }
   .codex-composer { right: 350px; left: auto; width: min(700px, calc(100% - 380px)); transform: none; }
+  .codex-scroll-latest { right: calc(350px + min(350px, (100% - 380px) / 2)); left: auto; transform: translateX(50%); }
 }
 
 @media (max-width: 1080px) {
@@ -425,8 +476,11 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
   .workspace { grid-column: 1; grid-row: 2; }
   .skin-codex .workspace { grid-row: 2; }
   .codex-thread-toolbar { padding-left: 16px; }
-  .codex-message { width: calc(100% - 38px); }
+  .codex-message,
+  .codex-user-message,
+  .codex-thinking { width: calc(100% - 38px); }
   .codex-composer { bottom: 12px; width: calc(100% - 24px); }
+  .codex-scroll-latest { bottom: 134px; }
   .codex-search-popover { top: 52px; left: 12px; width: calc(100vw - 24px); }
   .reader-page { width: calc(100% - 38px); padding-top: 58px; }
   .reader h1 { font-size: 30px; }
@@ -437,4 +491,5 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+  .codex-thinking span { color: #b0b4b2; background: none; }
 }
