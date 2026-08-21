@@ -19,7 +19,20 @@
 
 ## 下载
 
-从 [GitHub Releases](https://github.com/chillcharlie357/codex-ebook-reader/releases) 下载当前平台安装包。`v0.2.1` 提供 Apple Silicon macOS `.app.zip`；解压后可将应用拖入“应用程序”。该测试包使用临时签名，首次运行请在 Finder 中右键应用并选择“打开”。合并 PR 到 `main` 后，Release 工作流会自动递增补丁版本并构建 macOS、Windows 和 Linux 产物；也可从 Actions 手动重试。
+从 [GitHub Releases](https://github.com/chillcharlie357/codex-ebook-reader/releases) 下载当前平台安装包。Release 提供 Apple Silicon macOS `.app.zip`；解压后可将应用拖入“应用程序”。合并 PR 到 `main` 后，Release 工作流会自动递增补丁版本并构建 macOS、Windows 和 Linux 产物；也可从 Actions 手动重试。
+
+### macOS 未签名版本
+
+当前 macOS 安装包未使用 Apple Developer 证书签名或公证，Gatekeeper 可能阻止首次运行。请先在 Finder 中右键 `Codex Reader.app` 并选择“打开”。如果仍然无法启动，请先在 Finder 中移除“应用程序”内已有的同名旧版本，再在终端中进入解压后的应用所在目录并执行：
+
+```bash
+mv "Codex Reader.app" "/Applications/Codex Reader.app"
+xattr -cr "/Applications/Codex Reader.app"
+codesign --force --deep --sign - "/Applications/Codex Reader.app"
+codesign --verify --deep --strict --verbose=2 "/Applications/Codex Reader.app"
+```
+
+以上命令会移除应用的扩展属性并进行本机 ad-hoc 签名。请仅对从本仓库 GitHub Releases 下载且确认可信的安装包执行；最后一条命令用于验证签名结果。
 
 ## Web 开发
 
