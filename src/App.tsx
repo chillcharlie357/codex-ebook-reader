@@ -19,6 +19,7 @@ import {
   PanelRight,
   Plus,
   Puzzle,
+  RefreshCw,
   Search,
   Settings2,
   SlidersHorizontal,
@@ -31,6 +32,7 @@ import { CODEX_COPY, codexRecentChapters } from './codexPresentation'
 import { libraryDb } from './db'
 import { readInterfaceMode, writeInterfaceMode } from './interfaceMode'
 import { parseBook } from './parsers'
+import { checkForUpdate, CURRENT_VERSION } from './updateChecker'
 import type { Book, ReaderSettings } from './types'
 
 const DEFAULT_SETTINGS: ReaderSettings = {
@@ -38,6 +40,12 @@ const DEFAULT_SETTINGS: ReaderSettings = {
   lineHeight: 1.95,
   columnWidth: 720,
   theme: 'light',
+}
+
+type UpdateState = {
+  status: 'idle' | 'checking' | 'current' | 'available' | 'error'
+  latestVersion?: string
+  releaseUrl?: string
 }
 
 function formatNumber(value: number) {
@@ -73,6 +81,7 @@ function App() {
   const [settings, setSettings] = useState<ReaderSettings>(readSettings)
   const [interfaceMode, setInterfaceMode] = useState(() => readInterfaceMode(localStorage))
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [updateState, setUpdateState] = useState<UpdateState>({ status: 'idle' })
   const [searchOpen, setSearchOpen] = useState(false)
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const [inspectorOpen, setInspectorOpen] = useState(() => window.innerWidth > 1080)
@@ -251,6 +260,18 @@ function App() {
     setBooks(remaining)
     if (remaining[0]) await loadBook(remaining[0])
     else setActiveBookId(null)
+  }
+
+  const checkForUpdates = async () => {
+    setUpdateState({ status: 'checking' })
+    try {
+      const result = await checkForUpdate(CURRENT_VERSION)
+      setUpdateState(result.updateAvailable
+        ? { status: 'available', latestVersion: result.latestVersion, releaseUrl: result.releaseUrl }
+        : { status: 'current', latestVersion: result.latestVersion })
+    } catch {
+      setUpdateState({ status: 'error' })
+    }
   }
 
   const progress = activeBook
@@ -517,6 +538,20 @@ function App() {
           <div className="theme-switcher" role="group" aria-label="阅读主题">
             {(['light', 'sepia', 'dark'] as const).map((theme) => <button key={theme} className={settings.theme === theme ? 'active' : ''} onClick={() => setSettings({ ...settings, theme })}>{theme === 'light' ? '明亮' : theme === 'sepia' ? '纸张' : '夜间'}</button>)}
           </div>
+          <section className="update-settings" aria-label="软件更新">
+            <div className="update-settings-head"><strong>软件更新</strong><span>v{CURRENT_VERSION}</span></div>
+            <button className="update-check-button" disabled={updateState.status === 'checking'} onClick={() => void checkForUpdates()}>
+              <RefreshCw size={13} className={updateState.status === 'checking' ? 'is-spinning' : ''} />
+              {updateState.status === 'checking' ? '正在检查…' : '检查更新'}
+            </button>
+            <div className="update-result" aria-live="polite">
+              {updateState.status === 'current' && <span>已是最新版本</span>}
+              {updateState.status === 'error' && <span className="update-error">检查失败，请稍后重试</span>}
+              {updateState.status === 'available' && (
+                <span>发现 v{updateState.latestVersion} · <a href={updateState.releaseUrl} target="_blank" rel="noreferrer">前往下载</a></span>
+              )}
+            </div>
+          </section>
         </div>
       )}
 

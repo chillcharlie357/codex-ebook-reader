@@ -7,6 +7,7 @@
 - Codex / 阅读器双皮肤，选择会自动记忆
 - 左侧书籍与章节树、中央正文、右侧元信息与私人笔记
 - 阅读进度、章节位置、字号、行距和版心本地持久化
+- 阅读器设置可检查 GitHub 最新 Release，并在发现新版本时前往下载
 - macOS、Windows、Linux 共用一套 Tauri 2 桌面代码
 
 ## 支持格式
@@ -18,7 +19,7 @@
 
 ## 下载
 
-从 [GitHub Releases](https://github.com/chillcharlie357/codex-ebook-reader/releases) 下载当前平台安装包。`v0.2.1` 提供 Apple Silicon macOS `.app.zip`；解压后可将应用拖入“应用程序”。该测试包使用临时签名，首次运行请在 Finder 中右键应用并选择“打开”。仓库内的 Release 工作流支持后续标签构建 macOS、Windows 和 Linux 产物。
+从 [GitHub Releases](https://github.com/chillcharlie357/codex-ebook-reader/releases) 下载当前平台安装包。`v0.2.1` 提供 Apple Silicon macOS `.app.zip`；解压后可将应用拖入“应用程序”。该测试包使用临时签名，首次运行请在 Finder 中右键应用并选择“打开”。合并 PR 到 `main` 后，Release 工作流会自动递增补丁版本并构建 macOS、Windows 和 Linux 产物；也可从 Actions 手动重试。
 
 ## Web 开发
 
